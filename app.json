@@ -1,0 +1,70 @@
+{
+  "expo": {
+    "name": "RevCrew",
+    "slug": "revcrew",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "revcrew",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#08090C"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.revcrew.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "RevCrew uses your location to discover nearby open rides and share your live GPS position with your riding pack.",
+        "NSPhotoLibraryUsageDescription": "RevCrew accesses your photos and videos so you can share ride highlights and crew banners.",
+        "NSCameraUsageDescription": "RevCrew uses your camera to capture ride photos and videos."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#08090C",
+        "foregroundImage": "./assets/images/adaptive-icon.png"
+      },
+      "package": "com.revcrew.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "READ_MEDIA_IMAGES",
+        "READ_MEDIA_VIDEO"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#08090C"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow RevCrew to share your live location with your riding pack and find nearby open rides."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow RevCrew to access your photos and videos to share with the rider community."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
