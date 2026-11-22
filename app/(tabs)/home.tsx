@@ -44,6 +44,8 @@ import {
 import { useRevCrewStore } from '@/store/useRevCrewStore'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { triggerHaptic } from '@/lib/haptics'
+import { MediaViewerModal } from '@/components/MediaViewerModal'
+import type { FeedPost } from '@/types'
 
 export default function HomeScreen() {
   const router = useRouter()
@@ -64,6 +66,10 @@ export default function HomeScreen() {
   const [tagsInput, setTagsInput] = useState('#RevCrew #WeekendRide')
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({})
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({})
+  const [viewingPostId, setViewingPostId] = useState<string | null>(null)
+
+  const viewingPost: FeedPost | null =
+    posts.find((p) => p.id === viewingPostId) || null
 
   const featuredRide = rides[0]
   const riderById = (id: string) => riders.find((r) => r.id === id) || riders[0]
@@ -277,31 +283,53 @@ export default function HomeScreen() {
                 />
               </View>
 
-              {/* Media Frame */}
-              <View style={styles.mediaFrame}>
-                {post.mediaUri ? (
-                  <Image source={{ uri: post.mediaUri }} style={styles.mediaImg} resizeMode="cover" />
-                ) : (
-                  <LinearGradient
-                    colors={post.gradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.mediaPlaceholder}
-                  >
-                    {post.mediaType === 'video' ? (
-                      <View style={styles.playCircle}>
-                        <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
-                      </View>
-                    ) : (
-                      <Camera size={28} color="rgba(255,255,255,0.75)" />
-                    )}
-                    <Text style={styles.mediaOverlayTitle}>{post.rideTitle || post.location}</Text>
-                    <Text style={styles.mediaOverlaySub}>
-                      {author.bike} • {author.handle}
+              {/* Media Frame — Tap to view full-screen Photo or play Video */}
+              <Pressable
+                onPress={() => {
+                  triggerHaptic('light')
+                  setViewingPostId(post.id)
+                }}
+                style={({ pressed }) => [
+                  styles.mediaFrame,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <LinearGradient
+                  colors={post.gradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={StyleSheet.absoluteFill}
+                />
+                {post.thumbnailUri || (post.mediaType === 'photo' && post.mediaUri) ? (
+                  <Image
+                    source={{
+                      uri: post.mediaType === 'photo' ? post.mediaUri : post.thumbnailUri,
+                    }}
+                    style={styles.mediaImg}
+                    resizeMode="cover"
+                  />
+                ) : null}
+
+                <LinearGradient
+                  colors={['rgba(0,0,0,0.08)', 'rgba(0,0,0,0.68)']}
+                  style={styles.mediaScrim}
+                >
+                  {post.mediaType === 'video' ? (
+                    <View style={styles.playCircle}>
+                      <Play size={26} color="#FFFFFF" fill="#FFFFFF" />
+                    </View>
+                  ) : null}
+                  <View style={styles.mediaCaptionBar}>
+                    <Text style={styles.mediaOverlayTitle} numberOfLines={1}>
+                      {post.rideTitle || post.location}
                     </Text>
-                  </LinearGradient>
-                )}
-              </View>
+                    <Text style={styles.mediaOverlaySub}>
+                      {post.mediaType === 'video' ? 'Tap to play reel' : 'Tap to view photo'} •{' '}
+                      {author.bike}
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </Pressable>
 
               {/* Caption & Tags */}
               <Text style={styles.postCaption}>{post.caption}</Text>
@@ -465,6 +493,14 @@ export default function HomeScreen() {
           style={{ marginTop: Spacing.md }}
         />
       </ModalSheet>
+
+      {/* Full-Screen Photo & Video Player Modal */}
+      <MediaViewerModal
+        post={viewingPost}
+        author={viewingPost ? riderById(viewingPost.authorId) : null}
+        onClose={() => setViewingPostId(null)}
+        onToggleLike={toggleLikePost}
+      />
     </SafeAreaView>
   )
 }
@@ -598,12 +634,27 @@ const styles = StyleSheet.create({
   mediaFrame: {
     borderRadius: Radii.md,
     overflow: 'hidden',
-    height: 205,
+    height: 220,
     backgroundColor: Colors.surface,
+    position: 'relative',
   },
   mediaImg: {
     width: '100%',
     height: '100%',
+  },
+  mediaScrim: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    padding: Spacing.md,
+  },
+  mediaCaptionBar: {
+    width: '100%',
+    marginTop: 'auto',
   },
   mediaPlaceholder: {
     flex: 1,
@@ -613,26 +664,28 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   playCircle: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.65)',
+    position: 'absolute',
+    top: '34%',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,107,26,0.85)',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   mediaOverlayTitle: {
     fontFamily: 'Inter_700Bold',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
-    textAlign: 'center',
   },
   mediaOverlaySub: {
     fontFamily: 'Inter_400Regular',
     fontSize: 12,
-    color: 'rgba(255,255,255,0.78)',
+    color: 'rgba(255,255,255,0.82)',
+    marginTop: 2,
   },
   postCaption: {
     fontFamily: 'Inter_400Regular',

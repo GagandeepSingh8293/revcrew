@@ -67,6 +67,7 @@ export interface FeedPost {
   rideTitle?: string
   mediaType: 'photo' | 'video'
   mediaUri?: string
+  thumbnailUri?: string
   durationLabel?: string
   gradient: [string, string]
   caption: string

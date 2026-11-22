@@ -437,7 +437,7 @@ export const useRevCrewStore = create<RevCrewState>()(
         })),
     }),
     {
-      name: 'revcrew-storage-v1',
+      name: 'revcrew-storage-v2',
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

@@ -299,7 +299,10 @@ export const INITIAL_POSTS: FeedPost[] = [
     rideId: 'r_kasauli',
     rideTitle: 'Sunrise Kasauli Pine Twisties',
     mediaType: 'video',
-    durationLabel: '0:42 REEL',
+    mediaUri: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    thumbnailUri:
+      'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=1080&q=80',
+    durationLabel: '0:15 REEL',
     gradient: ['#C2410C', '#0E7490'],
     caption:
       'Golden hour sweeping through Barog hairpins with the Shivalik pack! Zero traffic, pure exhaust symphony.',
@@ -323,6 +326,8 @@ export const INITIAL_POSTS: FeedPost[] = [
     rideId: 'r_morni',
     rideTitle: 'Morni Hills Off-Road ADV Loop',
     mediaType: 'photo',
+    mediaUri:
+      'https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?auto=format&fit=crop&w=1080&q=80',
     gradient: ['#065F46', '#0891B2'],
     caption:
       'Misty trail break by Tikkar Taal. Who is joining this Sunday? 8 open spots still available!',
@@ -346,6 +351,8 @@ export const INITIAL_POSTS: FeedPost[] = [
     rideId: 'r_stelvio',
     rideTitle: 'Stelvio Pass 48 Hairpins Tour',
     mediaType: 'photo',
+    mediaUri:
+      'https://images.unsplash.com/photo-1609630875171-b1321377ee65?auto=format&fit=crop&w=1080&q=80',
     gradient: ['#9A3412', '#312E81'],
     caption:
       'Snow walls still standing at 2,757m. Global riders visiting Italy this month — hop into Alpine Pass Collective!',

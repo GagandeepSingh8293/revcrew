@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, View, Pressable, Text, useWindowDimensions } from 'react-native'
+import { StyleSheet, View, Pressable, Text } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Tabs } from 'expo-router'
 import { Flame, Compass, Radio, Users, Receipt } from 'lucide-react-native'
@@ -15,36 +15,49 @@ const TABS = [
   { name: 'splits', label: 'Splits', Icon: Receipt },
 ]
 
-function FloatingTabBar({ state, navigation }: any) {
-  const { width } = useWindowDimensions()
+function DockedPillTabBar({ state, navigation }: any) {
   const insets = useSafeAreaInsets()
   const myLiveSharing = useRevCrewStore((s) => s.myLiveSharing)
   const totalUnread = useRevCrewStore((s) =>
     s.channels.reduce((acc, ch) => acc + ch.unread, 0)
   )
 
-  const containerWidth = Math.min(width - 24, 440)
-  const bottomInset = Math.max(12, (insets.bottom || 0) + 6)
+  const bottomPad = Math.max(10, insets.bottom || 0)
 
   return (
-    <View style={[styles.floatingWrapper, { bottom: bottomInset }]} pointerEvents="box-none">
-      <View style={[styles.barContainer, { width: containerWidth }]}>
-        {state.routes.map((route: { key: string; name: string }, index: number) => {
+    <View style={[styles.dockWrapper, { paddingBottom: bottomPad }]}>
+      <View style={styles.barContainer}>
+        {state.routes.map((route: { key: string; name: string; params?: any }, index: number) => {
           const tab = TABS.find((t) => t.name === route.name) || TABS[index]
           if (!tab) return null
           const isFocused = state.index === index
           const { Icon, label } = tab
 
+          const onPress = () => {
+            triggerHaptic('selection')
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            })
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name, route.params)
+            }
+          }
+
           return (
             <Pressable
               key={route.key}
-              onPress={() => {
-                triggerHaptic('selection')
-                if (!isFocused) navigation.navigate(route.name)
-              }}
-              style={[styles.tabButton, isFocused && styles.tabButtonActive]}
+              onPress={onPress}
+              hitSlop={6}
+              style={({ pressed }) => [
+                styles.tabButton,
+                isFocused && styles.tabButtonActive,
+                pressed && { opacity: 0.78 },
+              ]}
               accessibilityRole="tab"
               accessibilityState={{ selected: isFocused }}
+              accessibilityLabel={`${label} Tab`}
             >
               <View style={styles.iconWrap}>
                 <Icon
@@ -81,7 +94,7 @@ function FloatingTabBar({ state, navigation }: any) {
 export default function TabsLayout() {
   return (
     <Tabs
-      tabBar={(props) => <FloatingTabBar {...props} />}
+      tabBar={(props) => <DockedPillTabBar {...props} />}
       screenOptions={{
         headerShown: false,
         sceneStyle: { backgroundColor: Colors.background },
@@ -97,17 +110,17 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  floatingWrapper: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 100,
+  dockWrapper: {
+    backgroundColor: Colors.background,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
   },
   barContainer: {
-    height: 66,
+    height: 62,
     borderRadius: Radii.pill,
-    backgroundColor: 'rgba(15, 18, 24, 0.96)',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.borderLight,
     flexDirection: 'row',
@@ -117,7 +130,7 @@ const styles = StyleSheet.create({
   },
   tabButton: {
     flex: 1,
-    height: 52,
+    height: 50,
     borderRadius: Radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
