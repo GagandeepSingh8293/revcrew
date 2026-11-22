@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Modal,
   View,
@@ -7,29 +7,123 @@ import {
   Pressable,
   StyleSheet,
   Share,
+  ActivityIndicator,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useVideoPlayer, VideoView } from 'expo-video'
-import { X, Heart, Share2, MapPin, Camera } from 'lucide-react-native'
+import {
+  X,
+  Heart,
+  Share2,
+  MapPin,
+  Camera,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+} from 'lucide-react-native'
 import { Colors, Spacing, Typography, Radii } from '@/theme/tokens'
 import { Avatar, Pill } from '@/components/ui'
 import { triggerHaptic } from '@/lib/haptics'
 import type { FeedPost, RiderProfile } from '@/types'
 
 function ActiveVideoPlayer({ uri }: { uri: string }) {
-  const player = useVideoPlayer(uri, (p) => {
+  const [isPlaying, setIsPlaying] = useState(true)
+  const [isMuted, setIsMuted] = useState(false)
+  const [isBuffering, setIsBuffering] = useState(true)
+
+  const player = useVideoPlayer({ uri }, (p) => {
     p.loop = true
+    p.muted = false
     p.play()
   })
 
+  useEffect(() => {
+    const statusSub = player.addListener('statusChange', ({ status }) => {
+      if (status === 'readyToPlay') {
+        setIsBuffering(false)
+        player.play()
+      } else if (status === 'loading') {
+        setIsBuffering(true)
+      } else if (status === 'error') {
+        setIsBuffering(false)
+      }
+    })
+    const playSub = player.addListener('playingChange', ({ isPlaying: playing }) => {
+      setIsPlaying(playing)
+      if (playing) setIsBuffering(false)
+    })
+
+    // Ensure playback kicks off once mounted
+    const timer = setTimeout(() => {
+      try {
+        player.play()
+      } catch {
+        // Ignore
+      }
+    }, 200)
+
+    return () => {
+      clearTimeout(timer)
+      statusSub.remove()
+      playSub.remove()
+    }
+  }, [player])
+
+  function togglePlay() {
+    triggerHaptic('light')
+    if (isPlaying) {
+      player.pause()
+      setIsPlaying(false)
+    } else {
+      player.play()
+      setIsPlaying(true)
+    }
+  }
+
+  function toggleMute() {
+    triggerHaptic('light')
+    const next = !isMuted
+    player.muted = next
+    setIsMuted(next)
+  }
+
   return (
-    <VideoView
-      player={player}
-      style={styles.videoView}
-      contentFit="contain"
-      nativeControls
-    />
+    <View style={styles.videoWrap}>
+      <VideoView
+        player={player}
+        style={styles.videoView}
+        contentFit="contain"
+        nativeControls
+      />
+      {isBuffering ? (
+        <View style={styles.bufferOverlay} pointerEvents="none">
+          <ActivityIndicator size="large" color={Colors.amber} />
+          <Text style={styles.bufferText}>Loading Ride Reel...</Text>
+        </View>
+      ) : null}
+
+      <View style={styles.videoControlsBar}>
+        <Pressable onPress={togglePlay} style={styles.controlPill}>
+          {isPlaying ? (
+            <Pause size={16} color="#FFFFFF" />
+          ) : (
+            <Play size={16} color="#FFFFFF" fill="#FFFFFF" />
+          )}
+          <Text style={styles.controlText}>{isPlaying ? 'Pause' : 'Play'}</Text>
+        </Pressable>
+
+        <Pressable onPress={toggleMute} style={styles.controlPill}>
+          {isMuted ? (
+            <VolumeX size={16} color={Colors.amberLight} />
+          ) : (
+            <Volume2 size={16} color={Colors.cyanLight} />
+          )}
+          <Text style={styles.controlText}>{isMuted ? 'Unmute' : 'Sound On'}</Text>
+        </Pressable>
+      </View>
+    </View>
   )
 }
 
@@ -184,9 +278,52 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  videoWrap: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   videoView: {
     width: '100%',
     height: '100%',
+  },
+  bufferOverlay: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: Radii.md,
+  },
+  bufferText: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 13,
+    color: '#FFFFFF',
+  },
+  videoControlsBar: {
+    position: 'absolute',
+    bottom: 14,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  controlPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: Radii.pill,
+    backgroundColor: 'rgba(15,18,24,0.85)',
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+  },
+  controlText: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 12,
+    color: '#FFFFFF',
   },
   fullImage: {
     width: '100%',

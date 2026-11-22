@@ -62,7 +62,19 @@ interface NewExpensePayload {
   participantIds: string[]
 }
 
+interface AuthCompletePayload {
+  mode: 'supabase' | 'demo'
+  email: string
+  fullName?: string
+  handle?: string
+  bike?: string
+  city?: string
+}
+
 interface RevCrewState {
+  isAuthenticated: boolean
+  authMode: 'supabase' | 'demo' | null
+  authEmail: string
   currentUserId: string
   riders: RiderProfile[]
   crews: CrewGroup[]
@@ -76,6 +88,8 @@ interface RevCrewState {
   activeLiveRideId: string
   savedItineraries: AiRideItinerary[]
 
+  completeAuth: (payload: AuthCompletePayload) => void
+  signOut: () => void
   toggleJoinRide: (rideId: string) => void
   createRide: (payload: NewRidePayload) => RidePlan
   toggleJoinCrew: (crewId: string) => void
@@ -108,6 +122,9 @@ const GRADIENTS: Array<[string, string]> = [
 export const useRevCrewStore = create<RevCrewState>()(
   persist(
     (set, get) => ({
+      isAuthenticated: false,
+      authMode: null,
+      authEmail: '',
       currentUserId: CURRENT_USER_ID,
       riders: INITIAL_RIDERS,
       crews: INITIAL_CREWS,
@@ -120,6 +137,31 @@ export const useRevCrewStore = create<RevCrewState>()(
       myLiveSharing: true,
       activeLiveRideId: 'r_kasauli',
       savedItineraries: [],
+
+      completeAuth: (payload) =>
+        set((state) => ({
+          isAuthenticated: true,
+          authMode: payload.mode,
+          authEmail: payload.email,
+          riders: state.riders.map((r) =>
+            r.id === state.currentUserId
+              ? {
+                  ...r,
+                  fullName: payload.fullName || r.fullName,
+                  handle: payload.handle || r.handle,
+                  bike: payload.bike || r.bike,
+                  city: payload.city || r.city,
+                }
+              : r
+          ),
+        })),
+
+      signOut: () =>
+        set({
+          isAuthenticated: false,
+          authMode: null,
+          authEmail: '',
+        }),
 
       toggleJoinRide: (rideId) =>
         set((state) => ({
@@ -437,7 +479,7 @@ export const useRevCrewStore = create<RevCrewState>()(
         })),
     }),
     {
-      name: 'revcrew-storage-v2',
+      name: 'revcrew-storage-v3',
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

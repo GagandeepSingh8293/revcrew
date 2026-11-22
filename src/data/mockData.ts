@@ -299,7 +299,7 @@ export const INITIAL_POSTS: FeedPost[] = [
     rideId: 'r_kasauli',
     rideTitle: 'Sunrise Kasauli Pine Twisties',
     mediaType: 'video',
-    mediaUri: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    mediaUri: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
     thumbnailUri:
       'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=1080&q=80',
     durationLabel: '0:15 REEL',

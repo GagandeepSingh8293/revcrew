@@ -29,6 +29,7 @@ import {
   Send,
   Wifi,
   WifiOff,
+  LogOut,
 } from 'lucide-react-native'
 import { Colors, Radii, Spacing, Typography } from '@/theme/tokens'
 import {
@@ -56,6 +57,7 @@ export default function HomeScreen() {
     toggleLikePost,
     addCommentToPost,
     createPost,
+    signOut,
   } = useRevCrewStore()
 
   const [composerOpen, setComposerOpen] = useState(false)
@@ -165,6 +167,16 @@ export default function HomeScreen() {
               style={styles.uploadIconBtn}
             >
               <Plus size={20} color="#FFFFFF" />
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                triggerHaptic('light')
+                signOut()
+                router.replace('/auth/login')
+              }}
+              style={styles.logoutIconBtn}
+            >
+              <LogOut size={17} color={Colors.textSecondary} />
             </Pressable>
           </View>
         </View>
@@ -541,6 +553,16 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     backgroundColor: Colors.amber,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutIconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
